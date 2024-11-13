@@ -1,9 +1,8 @@
 package com.Bio_Controle_Estoque.api.controller;
 
+import com.Bio_Controle_Estoque.domain.service.UserService;
 import com.Bio_Controle_Estoque.domain.model.User;
-import com.Bio_Controle_Estoque.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,31 +14,44 @@ import java.util.Optional;
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+
     @GetMapping
-    public List<User> listar(){
-        return userRepository.findAll();
+    public List<User> listar() {
+        return userService.listarUsuarios();
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> buscar(@PathVariable Long userId){
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<User> buscar(@PathVariable Long userId) {
+        Optional<User> user = userService.buscarUsuarioPorId(userId);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
+    @GetMapping("/registration/{registration}")
+    public ResponseEntity<User> buscarPorMatricula(@PathVariable String registration) {
+        Optional<User> user = userService.buscarUsuarioPorMatricula(registration);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/name/{name}")
+    public List<User> buscarPorNome(@PathVariable String name) {
+        return userService.buscarUsuarioPorNome(name);
+    }
+
+    @PostMapping
+    public User cadastrar(@RequestBody User user) {
+        return userService.salvarUsuario(user);
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<User> atualizar(@PathVariable Long userId, @RequestBody User user) {
+        Optional<User> usuarioAtualizado = userService.atualizarUsuario(userId, user);
+        return usuarioAtualizado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            userRepository.delete(user.get());
-            return ResponseEntity.noContent().build();  // Retorna 204 No Content se a exclusão for bem-sucedida
-        } else {
-            return ResponseEntity.notFound().build();  // Retorna 404 Not Found caso o usuário não exista
-        }
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        boolean deletado = userService.deletarUsuario(id);
+        return deletado ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
-
 }
