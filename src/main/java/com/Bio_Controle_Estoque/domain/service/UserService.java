@@ -22,13 +22,10 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public Optional<User> buscarUsuarioPorMatricula(String registration) {
-        return userRepository.findByRegistration(registration);
+    public List<User> buscarPorNomeOuMatricula(String query) {
+        return userRepository.findByNameContainingOrRegistrationContaining(query, query);
     }
 
-    public List<User> buscarUsuarioPorNome(String name) {
-        return userRepository.findByNameContaining(name);
-    }
 
     public User salvarUsuario(User user) {
         return userRepository.save(user);

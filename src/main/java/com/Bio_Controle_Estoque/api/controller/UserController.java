@@ -21,22 +21,19 @@ public class UserController {
         return userService.listarUsuarios();
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<User> buscar(@PathVariable Long userId) {
-        Optional<User> user = userService.buscarUsuarioPorId(userId);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> buscarPorNomeOuMatricula(@RequestParam String query) {
+        // Chama o serviço para buscar usuários por nome ou matrícula
+        List<User> users = userService.buscarPorNomeOuMatricula(query);
+
+        // Verifica se a lista está vazia
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Retorna 204 caso não encontre resultados
+        }
+        return ResponseEntity.ok(users); // Retorna 200 OK com os usuários encontrados
     }
 
-    @GetMapping("/registration/{registration}")
-    public ResponseEntity<User> buscarPorMatricula(@PathVariable String registration) {
-        Optional<User> user = userService.buscarUsuarioPorMatricula(registration);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
 
-    @GetMapping("/name/{name}")
-    public List<User> buscarPorNome(@PathVariable String name) {
-        return userService.buscarUsuarioPorNome(name);
-    }
 
     @PostMapping
     public User cadastrar(@RequestBody User user) {

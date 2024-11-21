@@ -1,9 +1,6 @@
 package com.Bio_Controle_Estoque.domain.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +13,12 @@ public class Tools {
     private Long id;
     private String name;
     private String description;
-    private boolean isAvailable;
+
+    @Column(name = "available")  // Mapeando a coluna is_available
+    private boolean available;
+
+    @OneToOne(mappedBy = "tools", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ToolsAssignment currentAssignment;
 
 
 }
