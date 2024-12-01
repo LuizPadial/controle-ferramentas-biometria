@@ -4,6 +4,7 @@ import com.Bio_Controle_Estoque.domain.model.ToolsAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,9 +27,11 @@ public interface ToolsAssignmentRepository extends JpaRepository<ToolsAssignment
     // Histórico de empréstimos de uma ferramenta específica
     List<ToolsAssignment> findByToolsIdOrderByIssueDateDesc(Long toolId);
 
+    Optional<ToolsAssignment> findById(Long id);
 
     // Verificar se uma ferramenta está emprestada no momento
     Optional<ToolsAssignment> findFirstByToolsIdAndReturnDateIsNull(Long toolId);
+
 
 
 }

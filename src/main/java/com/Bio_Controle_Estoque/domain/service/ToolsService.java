@@ -1,12 +1,15 @@
 package com.Bio_Controle_Estoque.domain.service;
 
+import com.Bio_Controle_Estoque.domain.DTO.ToolAvailabilityDTO;
 import com.Bio_Controle_Estoque.domain.model.Tools;
+import com.Bio_Controle_Estoque.domain.model.ToolsAssignment;
 import com.Bio_Controle_Estoque.domain.model.User;
 import com.Bio_Controle_Estoque.domain.repository.ToolsRepository;
 import com.Bio_Controle_Estoque.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,4 +50,19 @@ public class ToolsService {
             return true;
         }).orElse(false);
     }
+
+    public Optional<Tools> updateAvailability(Long toolId, ToolAvailabilityDTO toolAvailabilityDTO) {
+        Optional<Tools> toolOptional = toolsRepository.findById(toolId);
+        if (toolOptional.isPresent()) {
+            Tools tool = toolOptional.get();
+            tool.setAvailable(toolAvailabilityDTO.isAvailable());  // Atualiza apenas o campo 'available'
+            toolsRepository.save(tool);  // Salva no banco de dados
+            return Optional.of(tool);
+        }
+        return Optional.empty(); // Retorna empty se não encontrar a ferramenta
+    }
+
+
+
+
 }

@@ -7,11 +7,13 @@ import com.Bio_Controle_Estoque.domain.model.Tools;
 import com.Bio_Controle_Estoque.domain.model.ToolsAssignment;
 import com.Bio_Controle_Estoque.domain.repository.ToolsAssignmentRepository;
 import com.Bio_Controle_Estoque.domain.repository.ToolsRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -45,25 +47,45 @@ public class ToolsAssignmentService {
         return toolsAssignmentRepository.save(assignment);
     }
 
-    // Método de conversão para DTO
-    public ToolsAssignmentDTO convertToDTO(ToolsAssignment toolsAssignment) {
-        ToolsAssignmentDTO dto = new ToolsAssignmentDTO();
-        dto.setId(toolsAssignment.getId());
-        dto.setIssueDate(toolsAssignment.getIssueDate());
-        dto.setReturnDate(toolsAssignment.getReturnDate());
+    // Buscar o empréstimo de ferramenta por ID
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(toolsAssignment.getUser().getId());
-        userDTO.setName(toolsAssignment.getUser().getName());
-        dto.setUser(userDTO);
+    // Atualizar o empréstimo de ferramenta com a devolução
+    @Transactional
+    public ToolsAssignment returnTool(Long id) {
+        // Buscar o empréstimo
+        ToolsAssignment assignment = toolsAssignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empréstimo não encontrado"));
 
-        ToolsDTO toolsDTO = new ToolsDTO();
-        toolsDTO.setId(toolsAssignment.getTools().getId());
-        toolsDTO.setName(toolsAssignment.getTools().getName());
-        dto.setTools(toolsDTO);
+        // Verificar se a ferramenta já foi devolvida
+        if (assignment.getReturnDate() != null) {
+            throw new RuntimeException("Ferramenta já devolvida");
+        }
 
-        return dto;
+        // Buscar a ferramenta associada ao empréstimo
+        Tools tool = assignment.getTools();
+        tool.setAvailable(true); // Marcar a ferramenta como disponível
+
+        // Definir a data de devolução
+        assignment.setReturnDate(LocalDateTime.now());
+
+        // Salvar as alterações
+        toolsRepository.save(tool); // Salva a ferramenta com a nova disponibilidade
+        return toolsAssignmentRepository.save(assignment); // Salva o empréstimo com a data de devolução
     }
+
+    public ToolsAssignment returnToolData(Long id) {
+        // Recupera o empréstimo da ferramenta pelo ID
+        ToolsAssignment assignment = toolsAssignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empréstimo não encontrado"));
+
+        // Atualiza a data de devolução
+        assignment.setReturnDate(LocalDateTime.now()); // Definindo a data de devolução para o momento atual
+
+        // Salva a alteração no banco de dados
+        return toolsAssignmentRepository.save(assignment);
+    }
+
+
 
     // Serviço que retorna o histórico de ferramentas mapeado para DTOs
     public List<ToolsAssignmentDTO> getAssignmentHistoryByToolId(Long toolId) {
@@ -74,8 +96,6 @@ public class ToolsAssignmentService {
                 .map(this::convertToDTO)  // Supondo que você tenha um método convertToDTO
                 .collect(Collectors.toList());
     }
-
-
 
     // Buscar todos os registros
     public List<ToolsAssignment> getAllAssignments() {
@@ -101,4 +121,26 @@ public class ToolsAssignmentService {
     public List<ToolsAssignment> getOpenAssignments() {
         return toolsAssignmentRepository.findByReturnDateIsNull();
     }
+
+    // Método de conversão para DTO
+    public ToolsAssignmentDTO convertToDTO(ToolsAssignment toolsAssignment) {
+        ToolsAssignmentDTO dto = new ToolsAssignmentDTO();
+        dto.setId(toolsAssignment.getId());
+        dto.setIssueDate(toolsAssignment.getIssueDate());
+        dto.setReturnDate(toolsAssignment.getReturnDate());
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(toolsAssignment.getUser().getId());
+        userDTO.setName(toolsAssignment.getUser().getName());
+        dto.setUser(userDTO);
+
+        ToolsDTO toolsDTO = new ToolsDTO();
+        toolsDTO.setId(toolsAssignment.getTools().getId());
+        toolsDTO.setName(toolsAssignment.getTools().getName());
+        dto.setTools(toolsDTO);
+
+        return dto;
+    }
+
+
 }
