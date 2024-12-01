@@ -1,5 +1,6 @@
 package com.Bio_Controle_Estoque.api.controller;
 
+import com.Bio_Controle_Estoque.domain.DTO.ToolsAssignmentDTO;
 import com.Bio_Controle_Estoque.domain.model.ToolsAssignment;
 import com.Bio_Controle_Estoque.domain.service.ToolsAssignmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/assignments")
@@ -29,11 +32,28 @@ public class ToolsAssignmentController {
 
     // Buscar um empréstimo pelo ID
     @GetMapping("/{id}")
-    public ResponseEntity<ToolsAssignment> getAssignmentById(@PathVariable Long id) {
-        return toolsAssignmentService.getAssignmentById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<ToolsAssignmentDTO> getAssignmentById(@PathVariable Long id) {
+        Optional<ToolsAssignment> assignment = toolsAssignmentService.getAssignmentById(id);
+
+        return assignment
+                .map(a -> ResponseEntity.ok(toolsAssignmentService.convertToDTO(a)))  // Chama o método de conversão da service
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/ferramentas/{id}/historico")
+    public ResponseEntity<List<ToolsAssignmentDTO>> getAssignmentHistory(@PathVariable Long id) {
+        // Chama o serviço para buscar o histórico de empréstimos dessa ferramenta
+        List<ToolsAssignmentDTO> assignments = toolsAssignmentService.getAssignmentHistoryByToolId(id);
+
+        // Verifica se encontrou algum empréstimo
+        if (assignments.isEmpty()) {
+            return ResponseEntity.noContent().build();  // Retorna 204 caso não encontre resultados
+        }
+
+        return ResponseEntity.ok(assignments);  // Retorna 200 OK com a lista de históricos
+    }
+
+
 
     // Atualizar um empréstimo
     @PutMapping("/{id}")

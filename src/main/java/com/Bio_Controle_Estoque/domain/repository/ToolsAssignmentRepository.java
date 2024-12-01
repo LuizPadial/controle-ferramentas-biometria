@@ -9,9 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface ToolsAssignmentRepository extends JpaRepository<ToolsAssignment, Long> {
+
+
     // Buscar empréstimos ativos
     List<ToolsAssignment> findByReturnDateIsNull();
-
 
     // Buscar empréstimos ativos de um usuário específico
     List<ToolsAssignment> findByUserIdAndReturnDateIsNull(Long userId);
@@ -28,5 +29,6 @@ public interface ToolsAssignmentRepository extends JpaRepository<ToolsAssignment
 
     // Verificar se uma ferramenta está emprestada no momento
     Optional<ToolsAssignment> findFirstByToolsIdAndReturnDateIsNull(Long toolId);
+
 
 }
